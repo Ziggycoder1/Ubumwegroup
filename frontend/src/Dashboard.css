@@ -1,0 +1,584 @@
+/* Dashboard.css - Complete Styles for All Components */
+
+/* ========== ROOT VARIABLES ========== */
+:root {
+    /* Primary Colors */
+    --primary: #4361ee;
+    --primary-light: #e0e5ff;
+    --primary-dark: #3a56d4;
+    
+    /* Financial Colors */
+    --revenue: #28a745;
+    --expense: #dc3545;
+    --loan: #6f42c1;
+    --lottery: #fd7e14;
+    --penalty: #ffc107;
+    
+    /* Neutral Colors */
+    --white: #ffffff;
+    --light: #f8f9fa;
+    --gray-light: #e9ecef;
+    --gray: #6c757d;
+    --dark: #343a40;
+    
+    /* Status Colors */
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    
+    /* Layout */
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --topbar-height: 70px;
+    --card-radius: 10px;
+    --transition: all 0.3s ease;
+  }
+  
+  /* ========== BASE STYLES ========== */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+  }
+  
+  /* ========== DASHBOARD LAYOUT ========== */
+  .dashboard-container {
+    display: flex;
+    min-height: 100vh;
+    transition: var(--transition);
+  }
+  
+  /* Sidebar Styles */
+  .sidebar {
+    background-color: var(--white);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+    z-index: 100;
+  }
+  
+  .sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  
+  .sidebar-header h2 {
+    color: var(--primary);
+    font-size: 1.5rem;
+  }
+  
+  .sidebar-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--gray);
+    transition: var(--transition);
+  }
+  
+  .sidebar-toggle:hover {
+    color: var(--primary);
+  }
+  
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 25px;
+    color: var(--gray);
+    text-decoration: none;
+    transition: var(--transition);
+    margin: 5px 10px;
+    border-radius: 8px;
+  }
+  
+  .nav-item:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
+  }
+  
+  .nav-item.active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    font-weight: 500;
+  }
+  
+  .nav-icon {
+    margin-right: 15px;
+    font-size: 1.2rem;
+    min-width: 20px;
+  }
+  
+  .nav-label {
+    transition: var(--transition);
+  }
+  
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--gray-light);
+  }
+  
+  /* Collapsed Sidebar */
+  .dashboard-container.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+  }
+  
+  .dashboard-container.sidebar-collapsed .nav-label {
+    opacity: 0;
+    width: 0;
+    position: absolute;
+  }
+  
+  .dashboard-container.sidebar-collapsed .sidebar-header h2 {
+    display: none;
+  }
+  
+  /* Main Content Styles */
+  .main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: var(--transition);
+  }
+  
+  .dashboard-container.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+  
+  .topbar {
+    height: var(--topbar-height);
+    background-color: var(--white);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  
+  .topbar h1 {
+    font-size: 1.5rem;
+    color: var(--dark);
+  }
+  
+  .content-area {
+    padding: 30px;
+    min-height: calc(100vh - var(--topbar-height));
+  }
+  
+  /* ========== COMMON COMPONENTS ========== */
+  /* Profile Button */
+  .profile-btn {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  
+  .profile-btn:hover {
+    background-color: var(--gray-light);
+  }
+  
+  .profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profile-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .profile-role {
+    font-size: 0.8rem;
+    color: var(--gray);
+    text-transform: capitalize;
+  }
+  
+  .notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    margin-right: 20px;
+    cursor: pointer;
+    color: var(--gray);
+    position: relative;
+  }
+  
+  .notification-btn::after {
+    content: '3';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--danger);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Cards */
+  .card {
+    background: var(--white);
+    border-radius: var(--card-radius);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  
+  .card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--primary);
+  }
+  
+  .stat-card.revenue { border-left-color: var(--revenue); }
+  .stat-card.expense { border-left-color: var(--expense); }
+  .stat-card.loan { border-left-color: var(--loan); }
+  .stat-card.lottery { border-left-color: var(--lottery); }
+  .stat-card.penalty { border-left-color: var(--penalty); }
+  
+  .stat-icon {
+    font-size: 1.8rem;
+    margin-right: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .stat-card.revenue .stat-icon { 
+    background-color: #d4edda;
+    color: var(--revenue);
+  }
+  .stat-card.expense .stat-icon { 
+    background-color: #f8d7da;
+    color: var(--expense);
+  }
+  .stat-card.loan .stat-icon { 
+    background-color: #e2d9f3;
+    color: var(--loan);
+  }
+  .stat-card.lottery .stat-icon { 
+    background-color: #ffe5d0;
+    color: var(--lottery);
+  }
+  .stat-card.penalty .stat-icon { 
+    background-color: #fff3cd;
+    color: var(--penalty);
+  }
+  
+  .stat-info {
+    flex: 1;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 5px;
+  }
+  
+  .stat-title {
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+  
+  .stat-trend {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .stat-trend.up { color: var(--revenue); }
+  .stat-trend.down { color: var(--expense); }
+  .stat-trend.same { color: var(--warning); }
+  
+  /* Tables */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  
+  .data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  
+  .data-table th {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .data-table tr:hover {
+    background-color: var(--light);
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+  }
+  
+  .status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-badge.completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .status-badge.active {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+  
+  .status-badge.eligible {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .status-badge.ineligible {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+  }
+  
+  .btn-primary {
+    background-color: var(--primary);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  .btn-success {
+    background-color: var(--success);
+    color: white;
+  }
+  
+  .btn-danger {
+    background-color: var(--danger);
+    color: white;
+  }
+  
+  .btn-warning {
+    background-color: var(--warning);
+    color: var(--dark);
+  }
+  
+  .btn-view-all {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  .btn-view-all:hover {
+    text-decoration: underline;
+  }
+  
+  /* Loan Options */
+  .loan-options {
+    padding: 20px;
+    background-color: var(--light);
+    border-radius: var(--card-radius);
+    margin-bottom: 20px;
+  }
+  
+  .loan-info p {
+    margin-bottom: 10px;
+    color: var(--dark);
+  }
+  
+  .loan-info strong {
+    color: var(--primary-dark);
+  }
+  
+  /* Lottery Status */
+  .lottery-status {
+    padding: 20px;
+    background-color: var(--light);
+    border-radius: var(--card-radius);
+  }
+  
+  .lottery-info {
+    margin-bottom: 20px;
+  }
+  
+  .lottery-info p {
+    margin-bottom: 10px;
+    color: var(--dark);
+  }
+  
+  .lottery-info strong {
+    color: var(--lottery);
+  }
+  
+  .lottery-actions {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Report Options */
+  .report-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .report-btn {
+    background: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .report-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary);
+  }
+  
+  .report-icon {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: var(--primary);
+  }
+  
+  /* ========== RESPONSIVE STYLES ========== */
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: var(--sidebar-collapsed-width);
+    }
+    .main-content {
+      margin-left: var(--sidebar-collapsed-width);
+    }
+    .nav-label {
+      opacity: 0;
+      width: 0;
+      position: absolute;
+    }
+    .sidebar-header h2 {
+      display: none;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .content-area {
+      padding: 20px 15px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .data-table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .report-options {
+      grid-template-columns: 1fr;
+    }
+  }
