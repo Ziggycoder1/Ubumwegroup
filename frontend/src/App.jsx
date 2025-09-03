@@ -13,10 +13,11 @@ import MyContributionsPage from './MyContributionsPage';
 import MyLoansPage from './MyLoansPage';
 import MyLotteryPage from './MyLotteryPage';
 import MyPenaltiesPage from './MyPenaltiesPage';
-import MyProfilePage from './MyProfilePage';
+import ProfileWrapper from './components/ProfileWrapper';
 import FinancialReports from './FinancialReports';
 import AuditTrail from './AuditTrail';
 import MonthlySummary from './MonthlySummary';
+import ReportsPage from './components/ReportsPage';
 import { useAuth } from './context/AuthContext';
 
 function RequireAuth({ children }) {
@@ -75,9 +76,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admindashboard" element={<AdminDashboard />} />
-          <Route path="/memberdashboard" element={<MemberDashboard />} />
-          <Route path="/financedashboard" element={<FinanceDashboard />} />
+          <Route path="/admindashboard" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+          <Route path="/memberdashboard" element={<RequireAuth><MemberDashboard /></RequireAuth>} />
+          <Route path="/financedashboard" element={<RequireAuth><FinanceDashboard /></RequireAuth>} />
           <Route path="/transactions" element={<RequireAuth><FinanceDashboard /></RequireAuth>} />
           <Route path="/members" element={<RequireAuth><MembersPage /></RequireAuth>} />
           <Route path="/contributions" element={<ContributionsPage />} />
@@ -88,8 +89,9 @@ function App() {
           <Route path="/my-loans" element={<RequireAuth><MyLoansPage /></RequireAuth>} />
           <Route path="/lottery-status" element={<RequireAuth><MyLotteryPage /></RequireAuth>} />
           <Route path="/my-penalties" element={<RequireAuth><MyPenaltiesPage /></RequireAuth>} />
-          <Route path="/profile" element={<RequireAuth><MyProfilePage /></RequireAuth>} />
-          <Route path="/financial-reports" element={<RequireAuth><FinancialReports /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><ProfileWrapper /></RequireAuth>} />
+          <Route path="/financial-reports" element={<Navigate to="/reports" replace />} />
+          <Route path="/reports" element={<RequireAuth><ReportsPage /></RequireAuth>} />
           <Route path="/audit" element={<RequireAuth><AuditTrail /></RequireAuth>} />
           <Route path="/monthly-summary" element={<RequireAuth><MonthlySummary /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/login" replace />} />

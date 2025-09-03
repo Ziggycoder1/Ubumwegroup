@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import API_BASE from "./api";
 import DashboardLayout from './DashboardLayout';
 import StatCard from './StatCard';
@@ -105,6 +106,10 @@ const TransactionsTable = ({ transactions, loading }) => (
 
 const ReportOptions = () => (
   <div className="report-options">
+    <Link to="/reports" className="report-btn">
+      <span className="report-icon">📊</span>
+      View Full Financial Report
+    </Link>
     <button className="report-btn">
       <span className="report-icon">📅</span>
       Monthly Contributions
@@ -117,10 +122,36 @@ const ReportOptions = () => (
       <span className="report-icon">🎟️</span>
       Lottery History
     </button>
-    <button className="report-btn">
-      <span className="report-icon">⚖️</span>
-      Penalties Summary
-    </button>
+    <style jsx>{`
+      .report-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        padding: 15px 0;
+      }
+      .report-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 10px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+      }
+      .report-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .report-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+    `}</style>
   </div>
 );
 

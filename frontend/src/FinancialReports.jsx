@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "./context/AuthContext";
 import API_BASE from "./api";
 import DashboardLayout from "./DashboardLayout";
 
 const FinancialReports = () => {
+  const { user } = useAuth();
+  // Get role from the authenticated user
+  const role = user?.role?.toLowerCase() || 'member';
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +26,7 @@ const FinancialReports = () => {
   }, []);
 
   return (
-    <DashboardLayout role="finance">
+    <DashboardLayout role={role}>
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Financial Reports</h3>

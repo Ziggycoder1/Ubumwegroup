@@ -11,44 +11,54 @@ const DashboardLayout = ({ role, children }) => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Common links for all roles
-  const commonLinks = [
-    { to: "/dashboard", icon: "📊", label: "Dashboard" },
-    { to: "/profile", icon: "👤", label: "My Profile" }
-  ];
-
-  // Admin-specific links
-  const adminLinks = [
-    { to: "/members", icon: "👥", label: "Member Management" },
-    { to: "/contributions", icon: "💰", label: "Contributions" },
-    { to: "/loans", icon: "🏦", label: "Loan Management" },
-    { to: "/lottery", icon: "🎟️", label: "Lottery System" },
-    { to: "/penalties", icon: "⚖️", label: "Penalties" },
-    { to: "/reports", icon: "📈", label: "Reports" }
-  ];
-
-  // Finance-specific links
-  const financeLinks = [
-    { to: "/transactions", icon: "💸", label: "Transactions" },
-    { to: "/financial-reports", icon: "📊", label: "Financial Reports" },
-    { to: "/audit", icon: "🔍", label: "Audit Trail" },
-    { to: "/monthly-summary", icon: "📅", label: "Monthly Summary" }
-  ];
-
-  // Member-specific links
-  const memberLinks = [
-    { to: "/my-contributions", icon: "💰", label: "My Contributions" },
-    { to: "/my-loans", icon: "🏦", label: "My Loans" },
-    { to: "/lottery-status", icon: "🎟️", label: "Lottery Status" },
-    { to: "/my-penalties", icon: "⚠️", label: "My Penalties" }
-  ];
-
+  // Role-based navigation links
   const getRoleLinks = () => {
-    switch(role) {
-      case 'admin': return [...commonLinks, ...adminLinks];
-      case 'finance': return [...commonLinks, ...financeLinks];
-      case 'member': return [...commonLinks, ...memberLinks];
-      default: return commonLinks;
+    const baseLinks = [
+      { to: "/profile", icon: "👤", label: "My Profile" }
+    ];
+
+    // Convert role to lowercase for case-insensitive comparison
+    const normalizedRole = role?.toLowerCase();
+
+    switch(normalizedRole) {
+      case 'admin':
+        return [
+          { to: "/admindashboard", icon: "📊", label: "Dashboard" },
+          ...baseLinks,
+          { to: "/members", icon: "👥", label: "Member Management" },
+          { to: "/contributions", icon: "💰", label: "Contributions" },
+          { to: "/loans", icon: "🏦", label: "Loan Management" },
+          { to: "/lottery", icon: "🎟️", label: "Lottery System" },
+          { to: "/penalties", icon: "⚖️", label: "Penalties" },
+          { to: "/reports", icon: "📈", label: "Financial Reports" }
+        ];
+      
+      case 'finance':
+        return [
+          { to: "/financedashboard", icon: "📊", label: "Dashboard" },
+          ...baseLinks,
+          { to: "/transactions", icon: "💸", label: "Transactions" },
+          { to: "/reports", icon: "📊", label: "Financial Reports" },
+          { to: "/audit", icon: "🔍", label: "Audit Trail" },
+          { to: "/monthly-summary", icon: "📅", label: "Monthly Summary" }
+        ];
+      
+      case 'member':
+        return [
+          { to: "/memberdashboard", icon: "📊", label: "Dashboard" },
+          ...baseLinks,
+          { to: "/my-contributions", icon: "💰", label: "My Contributions" },
+          { to: "/reports", icon: "📈", label: "Financial Reports" },
+          { to: "/my-loans", icon: "🏦", label: "My Loans" },
+          { to: "/lottery-status", icon: "🎟️", label: "Lottery Status" },
+          { to: "/my-penalties", icon: "⚠️", label: "My Penalties" }
+        ];
+      
+      default:
+        return [
+          { to: "/memberdashboard", icon: "📊", label: "Dashboard" },
+          ...baseLinks
+        ];
     }
   };
 
