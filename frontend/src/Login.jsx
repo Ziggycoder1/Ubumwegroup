@@ -19,12 +19,27 @@ function Login() {
     try {
       const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include', // Important for cookies/sessions
         body: JSON.stringify({ email, password }),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed');
+      
+      if (!data.user || !data.token) {
+        throw new Error('Invalid response from server');
+      }
+      
       login(data.user, data.token);
+      
       // Redirect based on role
       if (data.user.role === 'Admin') {
         navigate('/admindashboard');
