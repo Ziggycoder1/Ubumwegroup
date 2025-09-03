@@ -74,6 +74,7 @@ function App() {
       )}
       <div style={{ width: isAuthRoute ? '100%' : '100vw', maxWidth: isAuthRoute ? 400 : 'none', display: 'flex', flexDirection: 'column', alignItems: isAuthRoute ? 'center' : 'stretch', justifyContent: isAuthRoute ? 'center' : 'stretch', flex: 1 }}>
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admindashboard" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
