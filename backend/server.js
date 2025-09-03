@@ -5,41 +5,28 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+
 const allowedOrigins = [
   'https://ubumwegroup-1.onrender.com',
-<<<<<<< HEAD
   'https://ubumwegroup.onrender.com',
   'http://localhost:5173' // optional for dev
 ];
-=======
-  'http://localhost:5173' // optional for dev
-];
 
+// CORS configuration
 app.use(cors({
-  origin: function(origin, callback){
+  origin: function(origin, callback) {
     // allow requests with no origin (like mobile apps or curl)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      console.log('CORS blocked for origin:', origin);
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
-  credentials: true
-}));
->>>>>>> da192c4a3026e2560d4f7bb627e48b3ca3fad765
-
-app.use(cors({
-  origin: function(origin, callback){
-    // allow requests with no origin (like mobile apps or curl)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
