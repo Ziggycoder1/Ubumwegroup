@@ -17,7 +17,7 @@ function Login() {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}`, {
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
