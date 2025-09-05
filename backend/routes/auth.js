@@ -33,22 +33,21 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' }); // 401 = Unauthorized
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // Generate and save token
+    const token = user.generateAuthToken();
+    await user.save();
 
     // Success response
     res.status(200).json({
@@ -121,6 +120,21 @@ router.post('/reset-password', async (req, res) => {
     res.json({ message: 'Password reset successful' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Logout
+router.post('/logout', auth, async (req, res) => {
+  try {
+    // Clear the token
+    req.user.token = undefined;
+    req.user.tokenExpires = undefined;
+    await req.user.save();
+    
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Server error during logout' });
   }
 });
 

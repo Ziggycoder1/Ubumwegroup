@@ -16,10 +16,8 @@ function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
     try {
-      console.log('Attempting login with:', { email });
-      const response = await fetch(`${API_BASE}/login`, {
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -29,28 +27,23 @@ function Login() {
         body: JSON.stringify({ email, password }),
       });
       
-      const responseData = await response.json().catch(() => ({}));
-      console.log('Login response:', { status: response.status, data: responseData });
-      
-      if (!response.ok) {
-        throw new Error(responseData.message || `Login failed with status: ${response.status}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
       }
       
-      if (!responseData.user || !responseData.token) {
-        throw new Error('Invalid response format from server');
+      const data = await res.json();
+      
+      if (!data.user || !data.token) {
+        throw new Error('Invalid response from server');
       }
       
-      // Store the token in localStorage
-      localStorage.setItem('token', responseData.token);
-      
-      // Update auth context
-      login(responseData.user, responseData.token);
+      login(data.user, data.token);
       
       // Redirect based on role
-      const { role } = responseData.user;
-      if (role === 'Admin') {
+      if (data.user.role === 'Admin') {
         navigate('/admindashboard');
-      } else if (role === 'Finance') {
+      } else if (data.user.role === 'Finance') {
         navigate('/financedashboard');
       } else {
         navigate('/memberdashboard');
