@@ -27,12 +27,12 @@ function Login() {
         body: JSON.stringify({ email, password }),
       });
       
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
-      }
+     
       
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || `HTTP error! status: ${res.status}`);
+      }
       
       if (!data.user || !data.token) {
         throw new Error('Invalid response from server');
