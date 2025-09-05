@@ -30,36 +30,72 @@ router.post('/login', async (req, res) => {
 
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email and password are required' 
+      });
+    }
+
+    // Check if JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables');
+      return res.status(500).json({ 
+        success: false,
+        message: 'Server configuration error' 
+      });
     }
 
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
 
-    // Generate and save token
-    const token = user.generateAuthToken();
-    await user.save();
+    try {
+      // Generate JWT
+      const token = jwt.sign(
+        { 
+          userId: user._id, 
+          role: user.role,
+          email: user.email
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' } // Increased expiry to 7 days for testing
+      );
 
-    // Success response
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
+      // Success response
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+      });
+      
+    } catch (jwtError) {
+      console.error('JWT Error:', jwtError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error generating authentication token',
+        error: jwtError.message
+      });
+    }
 
   } catch (err) {
     console.error('Login error:', err);
@@ -120,21 +156,6 @@ router.post('/reset-password', async (req, res) => {
     res.json({ message: 'Password reset successful' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-
-// Logout
-router.post('/logout', auth, async (req, res) => {
-  try {
-    // Clear the token
-    req.user.token = undefined;
-    req.user.tokenExpires = undefined;
-    await req.user.save();
-    
-    res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ message: 'Server error during logout' });
   }
 });
 

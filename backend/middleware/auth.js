@@ -1,28 +1,14 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
-async function auth(req, res, next) {
+function auth(req, res, next) {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({ message: 'No token, authorization denied' });
-    }
-
-    // Find user by token
-    const user = await User.findOne({ token });
-    
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-
-    // Add user to request object
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (err) {
-    console.error('Auth middleware error:', err);
-    res.status(500).json({ message: 'Server error during authentication' });
+    res.status(401).json({ message: 'Token is not valid' });
   }
 }
 
@@ -35,4 +21,4 @@ function role(requiredRole) {
   };
 }
 
-module.exports = { auth, role };
+module.exports = { auth, role }; 
