@@ -9,7 +9,8 @@ app.use(express.json());
 const allowedOrigins = [
   'https://ubumwegroup-1.onrender.com',
   'https://ubumwegroup.onrender.com',
-  'http://localhost:5173' // optional for dev
+  'http://localhost:5173',
+  'https://ubumwegroup.onrender.com' // Your frontend domain
 ];
 
 // CORS configuration
