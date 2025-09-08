@@ -9,7 +9,7 @@ app.use(express.json());
 const allowedOrigins = [
   'https://ubumwegroup-1.onrender.com',
   'https://ubumwegroup.onrender.com',
-  'http://localhost:5173' // optional for dev
+  'http://localhost:5174' // optional for dev
 ];
 
 // CORS configuration
@@ -29,11 +29,30 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+const connectDB = async () => {
+  try {
+    // Use MONGO_URI1 (MongoDB Atlas) if available, otherwise fall back to MONGO_URI (local)
+    const mongoUri = process.env.MONGO_URI1 || process.env.MONGO_URI;
+    
+    if (!mongoUri) {
+      throw new Error('No MongoDB connection string found in environment variables');
+    }
+    
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    
+    console.log(`MongoDB connected to: ${mongoUri.includes('@') ? 'MongoDB Atlas' : 'local database'}`);
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    // Exit process with failure
+    process.exit(1);
+  }
+};
+
+// Connect to the database
+connectDB();
 
 // Basic route
 app.get('/', (req, res) => {
