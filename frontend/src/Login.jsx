@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import API_BASE from './api';
-import './Login.css';
 import { useAuth } from './context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import './Auth.css';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -56,14 +56,14 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h2>Welcome Back To UBUMWE GROUP</h2>
-          <p>Please enter your credentials to login</p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2>Welcome Back</h2>
+          <p>Login to your UBUMWE GROUP account</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <input
@@ -85,26 +85,25 @@ function Login() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              placeholder="Enter your password"
+              placeholder="••••••••"
               className="form-input"
             />
           </div>
           
           {error && <div className="error-message">{error}</div>}
           
-          <button type="submit" className="login-button" disabled={isLoading}>
+          <button type="submit" className="auth-button" disabled={isLoading}>
             {isLoading ? (
               <span className="button-loader"></span>
             ) : (
-              'Login'
+              'Login to Account'
             )}
           </button>
+          
+          <div className="auth-footer">
+            Don't have an account? <Link to="/register" className="auth-link">Create account</Link>
+          </div>
         </form>
-        
-        <div className="login-footer">
-          <p>Don't have an account? <a href="/signup">Sign up</a></p>
-          <a href="/forgot-password" className="forgot-password">Forgot password?</a>
-        </div>
       </div>
     </div>
   );

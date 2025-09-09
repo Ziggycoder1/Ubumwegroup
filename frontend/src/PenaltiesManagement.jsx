@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
+import ResponsiveTable from './components/ResponsiveTable';
+import './PenaltiesManagement.css';
 
 function PenaltiesManagement() {
   const [penalties, setPenalties] = useState([]);
@@ -94,62 +96,211 @@ function PenaltiesManagement() {
     }
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const penaltyColumns = [
+    { 
+      key: 'member', 
+      label: 'Member',
+      render: (p) => p.member?.username || 'N/A'
+    },
+    { 
+      key: 'reason', 
+      label: 'Reason',
+    },
+    { 
+      key: 'amount', 
+      label: 'Amount',
+      render: (p) => formatCurrency(p.amount)
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (p) => (
+        <span className={`status-badge status-${p.paid ? 'paid' : 'pending'}`}>
+          {p.paid ? 'Paid' : 'Pending'}
+        </span>
+      )
+    },
+    { 
+      key: 'date', 
+      label: 'Date',
+      render: (p) => new Date(p.createdAt).toLocaleDateString()
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (p) => (
+        !p.paid ? (
+          <button 
+            onClick={() => handlePay(p._id)}
+            className="btn btn-pay"
+          >
+            Mark as Paid
+          </button>
+        ) : (
+          <span className="text-muted">Paid</span>
+        )
+      )
+    }
+  ];
+
   return (
-    <div style={{ margin: '2rem 0', color: '#222' }}>
-      <h3 style={{ color: '#111' }}>Penalties Management</h3>
-      <form onSubmit={handleAssign} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <select name="member" value={form.member} onChange={handleFormChange} required style={{ flex: 1, minWidth: 120 }}>
-          <option value="">Select Member</option>
-          {members.map(m => <option key={m._id} value={m._id}>{m.username}</option>)}
-        </select>
-        <select name="rule" value={form.rule} onChange={handleFormChange} style={{ flex: 1, minWidth: 120 }}>
-          <option value="">Select Preset Rule (optional)</option>
-          {rules.map(r => <option key={r._id} value={r._id}>{r.name} ({r.amount} RWF)</option>)}
-        </select>
-        <input name="reason" value={form.reason} onChange={handleFormChange} placeholder="Reason" required style={{ flex: 1, minWidth: 120 }} />
-        <input name="amount" value={form.amount} onChange={handleFormChange} placeholder="Amount" required type="number" style={{ flex: 1, minWidth: 100 }} />
-        <button type="submit" style={{ minWidth: 100 }}>Assign</button>
-      </form>
-      <form onSubmit={handleAddRule} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, background: '#f7f7f7', padding: 8, borderRadius: 6 }}>
-        <input name="name" value={ruleForm.name} onChange={handleRuleChange} placeholder="Rule Name" required style={{ flex: 1, minWidth: 120 }} />
-        <input name="description" value={ruleForm.description} onChange={handleRuleChange} placeholder="Description" style={{ flex: 2, minWidth: 120 }} />
-        <input name="amount" value={ruleForm.amount} onChange={handleRuleChange} placeholder="Amount" required type="number" style={{ flex: 1, minWidth: 100 }} />
-        <button type="submit" style={{ minWidth: 100 }}>Add Rule</button>
-      </form>
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 8 }}>{success}</div>}
-      {loading ? <div>Loading...</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', color: '#222' }}>
-          <thead>
-            <tr style={{ background: '#e6eaf3', color: '#111' }}>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Member</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Reason</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Amount</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Status</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Assigned</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Paid</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {penalties.map(p => (
-              <tr key={p._id} style={{ background: '#f9f9f9', color: '#222' }}>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.member?.username || ''}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.reason}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.amount}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.status}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.assignedAt ? new Date(p.assignedAt).toLocaleDateString() : '-'}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{p.paidAt ? new Date(p.paidAt).toLocaleDateString() : '-'}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  {p.status === 'unpaid' && <button onClick={() => handlePay(p._id)} style={{ color: 'green' }}>Mark as Paid</button>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="penalties-management">
+      <div className="page-header">
+        <h1>Penalties Management</h1>
+        <p className="page-description">Manage penalties and penalty rules</p>
+      </div>
+
+      {(error || success) && (
+        <div className="alerts-container">
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
+        </div>
       )}
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Assign New Penalty</h2>
+        </div>
+        <form onSubmit={handleAssign} className="penalty-form">
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Member</label>
+              <select 
+                name="member" 
+                value={form.member} 
+                onChange={handleFormChange} 
+                required
+              >
+                <option value="">Select Member</option>
+                {members.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.username}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Rule (Optional)</label>
+              <select 
+                name="rule" 
+                value={form.rule} 
+                onChange={handleFormChange}
+              >
+                <option value="">Select Rule</option>
+                {rules.map(r => (
+                  <option key={r._id} value={r._id}>
+                    {r.name} ({formatCurrency(r.amount)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Reason</label>
+              <input 
+                name="reason" 
+                value={form.reason} 
+                onChange={handleFormChange} 
+                placeholder="Reason for penalty" 
+                required 
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Amount (RWF)</label>
+              <input 
+                name="amount" 
+                type="number" 
+                value={form.amount} 
+                onChange={handleFormChange} 
+                placeholder="Amount" 
+                required 
+                min="0"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                Assign Penalty
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Penalty Rules</h2>
+        </div>
+        <form onSubmit={handleAddRule} className="rule-form">
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Rule Name</label>
+              <input 
+                name="name" 
+                value={ruleForm.name} 
+                onChange={handleRuleChange} 
+                placeholder="e.g., Late Payment" 
+                required 
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <input 
+                name="description" 
+                value={ruleForm.description} 
+                onChange={handleRuleChange} 
+                placeholder="Rule description" 
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Amount (RWF)</label>
+              <input 
+                name="amount" 
+                type="number" 
+                value={ruleForm.amount} 
+                onChange={handleRuleChange} 
+                placeholder="Amount" 
+                required 
+                min="0"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-secondary">
+                Add Rule
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Penalty Records</h2>
+        </div>
+        <div className="table-container">
+          <ResponsiveTable 
+            columns={penaltyColumns}
+            data={penalties}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default PenaltiesManagement; 
+export default PenaltiesManagement;

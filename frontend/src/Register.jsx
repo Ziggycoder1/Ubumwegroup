@@ -1,37 +1,25 @@
 import { useState } from 'react';
 import API_BASE from './api';
 import { useAuth } from './context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import './Auth.css';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Member');
+  const role = 'Member'; // Set default role to 'Member'
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
-
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    fontSize: '16px',
-    marginTop: '4px',
-    boxSizing: 'border-box',
-    outline: 'none',
-    marginBottom: '0',
-    transition: 'border 0.2s',
-    background: '#f9f9f9',
-    color: '#222',
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setIsLoading(true);
     try {
       const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
@@ -44,42 +32,84 @@ function Register() {
       setUsername('');
       setEmail('');
       setPassword('');
-      setRole('Member');
+      
+      // Auto-redirect to login after 3 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Username:</label>
-          <input value={username} onChange={e => setUsername(e.target.value)} required style={inputStyle} />
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2>Create an Account</h2>
+          <p>Join UBUMWE GROUP today</p>
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Email:</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Password:</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={inputStyle} />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Role:</label>
-          <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
-            <option value="Member">Member</option>
-            <option value="Admin">Admin</option>
-            <option value="Finance">Finance</option>
-          </select>
-        </div>
-        {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
-        {success && <div style={{ color: 'green', marginBottom: 12 }}>{success}</div>}
-        <button type="submit" style={{ width: '100%', padding: 10, borderRadius: 6, background: '#007bff', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: 16 }}>Register</button>
-      </form>
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+              placeholder="Choose a username"
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="Enter your email"
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              placeholder="Create a strong password"
+              className="form-input"
+            />
+          </div>
+          
+          {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
+          
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? (
+              <span className="button-loader"></span>
+            ) : (
+              'Create Account'
+            )}
+          </button>
+          
+          <div className="auth-footer">
+            Already have an account? <Link to="/login" className="auth-link">Sign in</Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
 
-export default Register; 
+export default Register;

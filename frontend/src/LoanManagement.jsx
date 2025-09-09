@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
+import ResponsiveTable from './components/ResponsiveTable';
+import './LoanManagement.css';
 
 function LoanManagement() {
   const [loans, setLoans] = useState([]);
@@ -15,7 +17,7 @@ function LoanManagement() {
       const data = await res.json();
       setLoans(data);
     } catch (err) {
-      setError('Failed to fetch loans');
+      setError(err.message);
     }
     setLoading(false);
   };
@@ -35,57 +37,126 @@ function LoanManagement() {
     }
   };
 
-  return (
-    <div style={{ margin: '2rem 0', color: '#222' }}>
-      <h3 style={{ color: '#111' }}>Loan Management</h3>
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 8 }}>{success}</div>}
-      {loading ? <div>Loading...</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', color: '#222' }}>
-          <thead>
-            <tr style={{ background: '#e6eaf3', color: '#111' }}>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Member</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Amount</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Status</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Interest (%)</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Repayments</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Return By</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loans.map(loan => (
-              <tr key={loan._id} style={{ background: '#f9f9f9', color: '#222' }}>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{loan.member?.username || ''}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{loan.amount}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{loan.status}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{loan.interest}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  {loan.repayments && loan.repayments.length > 0 ? (
-                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                      {loan.repayments.map((r, i) => (
-                        <li key={i}>RWF {r.amount} ({new Date(r.paidAt).toLocaleDateString()})</li>
-                      ))}
-                    </ul>
-                  ) : 'None'}
-                </td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  {loan.approvedAt ? new Date(new Date(loan.approvedAt).setMonth(new Date(loan.approvedAt).getMonth() + 3)).toLocaleDateString() : '-'}
-                </td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  {loan.status === 'pending' ? (
-                    <button onClick={() => handleApprove(loan._id)} style={{ color: 'green' }}>Approve</button>
-                  ) : (
-                    <button disabled style={{ color: '#fff', background: '#28a745', border: 'none', borderRadius: 4, padding: '6px 12px', opacity: 0.8 }}>Approved</button>
-                  )}
-                </td>
-              </tr>
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const columns = [
+    { 
+      key: 'member', 
+      label: 'Member',
+      render: (loan) => loan.member?.username || 'N/A'
+    },
+    { 
+      key: 'amount', 
+      label: 'Amount',
+      render: (loan) => formatCurrency(loan.amount)
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (loan) => (
+        <span className={`status-badge status-${loan.status}`}>
+          {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+        </span>
+      )
+    },
+    { 
+      key: 'interest', 
+      label: 'Interest (%)',
+      render: (loan) => `${loan.interest}%`
+    },
+    { 
+      key: 'repayments', 
+      label: 'Repayments',
+      render: (loan) => (
+        loan.repayments?.length > 0 ? (
+          <div className="repayments-list">
+            {loan.repayments.map((r, i) => (
+              <div key={i} className="repayment-item">
+                <span className="repayment-amount">{formatCurrency(r.amount)}</span>
+                <span className="repayment-date">
+                  {new Date(r.paidAt).toLocaleDateString()}
+                </span>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <span className="no-repayments">No repayments yet</span>
+        )
+      )
+    },
+    { 
+      key: 'returnBy', 
+      label: 'Return By',
+      render: (loan) => (
+        loan.approvedAt ? (
+          <div className="return-date">
+            {new Date(new Date(loan.approvedAt).setMonth(
+              new Date(loan.approvedAt).getMonth() + 3
+            )).toLocaleDateString()}
+          </div>
+        ) : (
+          <span className="not-applicable">-</span>
+        )
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (loan) => (
+        loan.status === 'pending' ? (
+          <button 
+            onClick={() => handleApprove(loan._id)}
+            className="btn btn-approve"
+          >
+            Approve
+          </button>
+        ) : (
+          <button 
+            disabled 
+            className="btn btn-approved"
+          >
+            Approved
+          </button>
+        )
+      )
+    }
+  ];
+
+  return (
+    <div className="loan-management">
+      <div className="page-header">
+        <h1>Loan Management</h1>
+        <p className="page-description">View and manage loan applications and approvals</p>
+      </div>
+
+      {(error || success) && (
+        <div className="alerts-container">
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
+        </div>
       )}
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Loan Applications</h2>
+        </div>
+        <div className="table-container">
+          <ResponsiveTable 
+            columns={columns}
+            data={loans}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default LoanManagement; 
+export default LoanManagement;

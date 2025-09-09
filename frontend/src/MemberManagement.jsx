@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
+import ResponsiveTable from './components/ResponsiveTable';
+import './MemberManagement.css';
 
 function MemberManagement() {
   const [members, setMembers] = useState([]);
@@ -80,61 +82,159 @@ function MemberManagement() {
     }
   };
 
+  const columns = [
+    { key: 'username', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'role', label: 'Role' },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (item) => (
+        <span style={{ 
+          color: item.status === 'active' ? '#38a169' : '#e53e3e',
+          fontWeight: 500
+        }}>
+          {item.status}
+        </span>
+      )
+    }
+  ];
+
   return (
-    <div style={{ margin: '2rem 0', color: '#222' }}>
-      <h3>Member Management</h3>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <input name="username" value={form.username} onChange={handleChange} placeholder="Name" required style={{ flex: 1, minWidth: 120 }} />
-        <input name="email" value={form.email} onChange={handleChange} placeholder="Email" required style={{ flex: 1, minWidth: 120 }} />
-        <input name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" style={{ flex: 1, minWidth: 100 }} />
-        <select name="role" value={form.role} onChange={handleChange} style={{ flex: 1, minWidth: 100 }}>
-          <option value="Member">Member</option>
-          <option value="Admin">Admin</option>
-          <option value="Finance">Finance</option>
-        </select>
-        <select name="status" value={form.status} onChange={handleChange} style={{ flex: 1, minWidth: 100 }}>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        {!editingId && (
-          <input name="password" value={form.password} onChange={handleChange} placeholder="Password" required type="password" style={{ flex: 1, minWidth: 120 }} />
-        )}
-        <button type="submit" style={{ minWidth: 100 }}>{editingId ? 'Update' : 'Add'}</button>
-        {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ username: '', email: '', phone: '', role: 'Member', status: 'active', password: '' }); }}>Cancel</button>}
-      </form>
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 8 }}>{success}</div>}
-      {loading ? <div>Loading...</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
-          <thead>
-            <tr style={{ background: '#e6eaf3' }}>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Name</th>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Email</th>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Phone</th>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Role</th>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Status</th>
-              <th style={{ border: '1px solid #e0e0e0', padding: 8 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {members.map(m => (
-              <tr key={m._id} style={{ background: '#f9f9f9' }}>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{m.username}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{m.email}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{m.phone}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{m.role}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{m.status}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  <button onClick={() => handleEdit(m)} style={{ marginRight: 6 }}>Edit</button>
-                  <button onClick={() => handleDelete(m._id)} style={{ color: 'red' }}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="member-management">
+      <div className="page-header">
+        <h1>Member Management</h1>
+        <p className="page-description">Manage system users and their permissions</p>
+      </div>
+      
+      <div className="card">
+        <div className="card-header">
+          <h2>{editingId ? 'Edit Member' : 'Add New Member'}</h2>
+        </div>
+        <form onSubmit={handleSubmit} className="member-form">
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Name</label>
+            <input 
+              name="username" 
+              value={form.username} 
+              onChange={handleChange} 
+              placeholder="Name" 
+              required 
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Email</label>
+            <input 
+              name="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              placeholder="Email" 
+              required 
+              type="email"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Phone</label>
+            <input 
+              name="phone" 
+              value={form.phone} 
+              onChange={handleChange} 
+              placeholder="Phone" 
+              type="tel"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Role</label>
+            <select 
+              name="role" 
+              value={form.role} 
+              onChange={handleChange}
+            >
+              <option value="Member">Member</option>
+              <option value="Admin">Admin</option>
+              <option value="Finance">Finance</option>
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label>Status</label>
+            <select 
+              name="status" 
+              value={form.status} 
+              onChange={handleChange}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          
+          {!editingId && (
+            <div className="form-group">
+              <label>Password</label>
+              <input 
+                name="password" 
+                value={form.password} 
+                onChange={handleChange} 
+                placeholder="Password" 
+                required 
+                type="password" 
+              />
+            </div>
+          )}
+          
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary">
+              {editingId ? 'Update' : 'Add'} Member
+            </button>
+            
+            {editingId && (
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={() => { 
+                  setEditingId(null); 
+                  setForm({ 
+                    username: '', 
+                    email: '', 
+                    phone: '', 
+                    role: 'Member', 
+                    status: 'active', 
+                    password: '' 
+                  }); 
+                }}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+        </form>
+      </div>
+      
+      {(error || success) && (
+        <div className="alerts-container">
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
+        </div>
       )}
+      
+      <div className="table-container">
+        <ResponsiveTable 
+          columns={columns}
+          data={members}
+          loading={loading}
+          error={error}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </div>
     </div>
   );
 }
 
-export default MemberManagement; 
+export default MemberManagement;

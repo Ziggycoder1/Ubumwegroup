@@ -1,5 +1,6 @@
 import DashboardLayout from './DashboardLayout';
 import StatCard from './StatCard';
+import LotteryParticipation from './LotteryParticipation';
 
 const MemberDashboard = () => {
   return (
@@ -15,6 +16,15 @@ const MemberDashboard = () => {
             <StatCard title="Lottery Eligibility" value="Eligible" icon="🎟️" trend="same" />
             <StatCard title="Active Penalties" value="0" icon="⚠️" trend="same" />
           </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Participate in Lottery</h3>
+        </div>
+        <div className="card-body">
+          <LotteryParticipation />
         </div>
       </div>
 

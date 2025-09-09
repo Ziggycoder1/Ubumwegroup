@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
+import ResponsiveTable from './components/ResponsiveTable';
+import './ContributionManagement.css';
 
 function ContributionManagement() {
   const [contributions, setContributions] = useState([]);
@@ -91,57 +93,194 @@ function ContributionManagement() {
     }
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const contributionColumns = [
+    { 
+      key: 'member', 
+      label: 'Member',
+      render: (c) => c.member?.username || 'N/A'
+    },
+    { 
+      key: 'amount', 
+      label: 'Amount',
+      render: (c) => formatCurrency(c.amount)
+    },
+    { 
+      key: 'date', 
+      label: 'Date',
+      render: (c) => `${c.month}/${c.year}`
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (c) => (
+        <span className={`status-badge status-${c.status}`}>
+          {c.status.charAt(0).toUpperCase() + c.status.slice(1)}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (c) => (
+        <div className="actions">
+          <button 
+            onClick={() => handleEdit(c)}
+            className="btn btn-edit"
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => handleDelete(c._id)}
+            className="btn btn-delete"
+          >
+            Delete
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
-    <div style={{ margin: '2rem 0', color: '#222' }}>
-      <h3 style={{ color: '#111' }}>Contribution Management</h3>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        <select name="member" value={form.member} onChange={handleChange} required style={{ flex: 1, minWidth: 120, color: '#222', background: '#f9f9f9', border: '1px solid #bbb' }}>
-          <option value="">Select Member</option>
-          {members.map(m => <option key={m._id} value={m._id}>{m.username}</option>)}
-        </select>
-        <input name="amount" value={form.amount} onChange={handleChange} placeholder="Amount" required type="number" style={{ flex: 1, minWidth: 100, color: '#222', background: '#f9f9f9', border: '1px solid #bbb' }} />
-        <input name="month" value={form.month} onChange={handleChange} placeholder="Month (1-12)" required type="number" min="1" max="12" style={{ flex: 1, minWidth: 80, color: '#222', background: '#f9f9f9', border: '1px solid #bbb' }} />
-        <input name="year" value={form.year} onChange={handleChange} placeholder="Year" required type="number" style={{ flex: 1, minWidth: 80, color: '#222', background: '#f9f9f9', border: '1px solid #bbb' }} />
-        <select name="status" value={form.status} onChange={handleChange} style={{ flex: 1, minWidth: 100, color: '#222', background: '#f9f9f9', border: '1px solid #bbb' }}>
-          <option value="paid">Paid</option>
-          <option value="unpaid">Unpaid</option>
-        </select>
-        <button type="submit" style={{ minWidth: 100 }}>{editingId ? 'Update' : 'Add'}</button>
-        {editingId && <button type="button" onClick={() => { setEditingId(null); setForm({ member: '', amount: '', month: '', year: '', status: 'paid' }); }}>Cancel</button>}
-      </form>
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 8 }}>{success}</div>}
-      {loading ? <div>Loading...</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', color: '#222' }}>
-          <thead>
-            <tr style={{ background: '#e6eaf3', color: '#111' }}>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Member</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Amount</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Month</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Year</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Status</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contributions.map(c => (
-              <tr key={c._id} style={{ background: '#f9f9f9', color: '#222' }}>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{c.member?.username || ''}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{c.amount}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{c.month}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{c.year}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{c.status}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
-                  <button onClick={() => handleEdit(c)} style={{ marginRight: 6 }}>Edit</button>
-                  <button onClick={() => handleDelete(c._id)} style={{ color: 'red' }}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="contribution-management">
+      <div className="page-header">
+        <h1>Contribution Management</h1>
+        <p className="page-description">Manage member contributions and track payment status</p>
+      </div>
+
+      {(error || success) && (
+        <div className="alerts-container">
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
+        </div>
       )}
+
+      <div className="card">
+        <div className="card-header">
+          <h2>{editingId ? 'Edit Contribution' : 'Add New Contribution'}</h2>
+        </div>
+        <form onSubmit={handleSubmit} className="contribution-form">
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Member</label>
+              <select 
+                name="member" 
+                value={form.member} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="">Select Member</option>
+                {members.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.username}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Amount (RWF)</label>
+              <input 
+                name="amount" 
+                type="number" 
+                value={form.amount} 
+                onChange={handleChange} 
+                placeholder="Amount" 
+                required 
+                min="0"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Month</label>
+              <select 
+                name="month" 
+                value={form.month} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="">Select Month</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                  <option key={m} value={m}>
+                    {new Date(2000, m - 1).toLocaleString('default', { month: 'long' })}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Year</label>
+              <select 
+                name="year" 
+                value={form.year} 
+                onChange={handleChange} 
+                required
+              >
+                <option value="">Select Year</option>
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(y => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Status</label>
+              <select 
+                name="status" 
+                value={form.status} 
+                onChange={handleChange}
+              >
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary">
+                {editingId ? 'Update' : 'Add'} Contribution
+              </button>
+              {editingId && (
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => { 
+                    setEditingId(null); 
+                    setForm({ member: '', amount: '', month: '', year: '', status: 'paid' }); 
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Contribution Records</h2>
+        </div>
+        <div className="table-container">
+          <ResponsiveTable 
+            columns={contributionColumns}
+            data={contributions}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default ContributionManagement; 
+export default ContributionManagement;

@@ -1,15 +1,46 @@
-import { useState, useEffect, useRef } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import './Dashboard.css';
 import { useAuth } from './context/AuthContext';
 
 const DashboardLayout = ({ role, children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
+  const isMobile = window.innerWidth < 768;
+  const menuButtonRef = useRef();
+  const sidebarRef = useRef();
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  // Close sidebar when route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Toggle sidebar
+  const toggleSidebar = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  // Close sidebar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isMobile && 
+          sidebarOpen &&
+          sidebarRef.current && 
+          !sidebarRef.current.contains(e.target) &&
+          menuButtonRef.current &&
+          !menuButtonRef.current.contains(e.target)) {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobile, sidebarOpen]);
 
   // Role-based navigation links
   const getRoleLinks = () => {
@@ -62,20 +93,67 @@ const DashboardLayout = ({ role, children }) => {
     }
   };
 
+  // Handle overlay click to close sidebar
+  const handleOverlayClick = () => {
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
+
+  console.log('Rendering with sidebarOpen:', sidebarOpen, 'isMobile:', isMobile);
+
+  // Close sidebar when clicking on a nav item on mobile
+  const handleNavClick = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
-    <div className={`dashboard-container ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+    <div className={`dashboard-container ${sidebarOpen ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
+      {/* Mobile Menu Button - Always visible on mobile */}
+      <button 
+        ref={menuButtonRef}
+        className="mobile-menu-button"
+        onClick={toggleSidebar}
+        aria-label="Toggle menu"
+        aria-expanded={sidebarOpen}
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Overlay - Only shown when sidebar is open on mobile */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={toggleSidebar}
+        />
+      )}
+      
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside 
+        className={`sidebar ${sidebarOpen ? 'open' : ''} ${isMobile ? 'mobile' : ''}`} 
+        ref={sidebarRef}
+      >
         <div className="sidebar-header">
-          <h2>UBUMWE MIS</h2>
-          <button className="sidebar-toggle" onClick={toggleSidebar}>
+          <h2 className={sidebarOpen ? '' : 'hidden'}>UBUMWE MIS</h2>
+          <button 
+            className="sidebar-toggle" 
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
             {sidebarOpen ? '◀' : '▶'}
           </button>
         </div>
         
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" onClick={handleNavClick}>
           {getRoleLinks().map((link) => (
-            <NavItem key={link.to} to={link.to} icon={link.icon} label={link.label} />
+            <NavItem 
+              key={link.to} 
+              to={link.to} 
+              icon={link.icon} 
+              label={link.label} 
+            />
           ))}
         </nav>
         
@@ -86,11 +164,16 @@ const DashboardLayout = ({ role, children }) => {
 
       {/* Main Content */}
       <main className="main-content">
-        <header className="topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', minHeight: 64 }}>
-          <h1 style={{ margin: 0 }}>{role.charAt(0).toUpperCase() + role.slice(1)} Dashboard</h1>
-          <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button className="notification-btn">🔔</button>
-            <ProfileButton role={role} user={user} />
+        <header className="topbar">
+          <div className="topbar-content">
+            <h1>{role.charAt(0).toUpperCase() + role.slice(1)} Dashboard</h1>
+            <div className="topbar-actions">
+              <button className="notification-btn">
+                🔔
+            
+              </button>
+              <ProfileButton role={role} user={user} />
+            </div>
           </div>
         </header>
         
@@ -103,14 +186,19 @@ const DashboardLayout = ({ role, children }) => {
   );
 };
 
-const NavItem = ({ to, icon, label }) => (
-  <NavLink to={to} className={({ isActive }) => 
-    `nav-item ${isActive ? 'active' : ''}`
-  }>
-    <span className="nav-icon">{icon}</span>
-    <span className="nav-label">{label}</span>
-  </NavLink>
-);
+const NavItem = ({ to, icon, label }) => {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => 
+        `nav-item ${isActive ? 'active' : ''}`
+      }
+    >
+      <span className="nav-icon" aria-hidden="true">{icon}</span>
+      <span className="nav-label">{label}</span>
+    </NavLink>
+  );
+};
 
 const ProfileButton = ({ role, user }) => {
   const { logout } = useAuth();

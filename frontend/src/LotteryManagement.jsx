@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
+import ResponsiveTable from './components/ResponsiveTable';
+import './LotteryManagement.css';
 
 function getCurrentMonthYear() {
   const now = new Date();
@@ -53,51 +55,122 @@ function LotteryManagement() {
     setDrawLoading(false);
   };
 
+  const lotteryColumns = [
+    { 
+      key: 'date', 
+      label: 'Month/Year',
+      render: (lottery) => `${lottery.month}/${lottery.year}`
+    },
+    { 
+      key: 'winner', 
+      label: 'Winner',
+      render: (lottery) => lottery.winner?.username || '-'
+    },
+    { 
+      key: 'buyout', 
+      label: 'Buyout By',
+      render: (lottery) => lottery.boughtBy?.username || '-'
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (lottery) => (
+        <span className={`status-badge status-${lottery.status}`}>
+          {lottery.status.charAt(0).toUpperCase() + lottery.status.slice(1)}
+        </span>
+      )
+    },
+    { 
+      key: 'drawDate', 
+      label: 'Draw Date',
+      render: (lottery) => lottery.drawDate ? new Date(lottery.drawDate).toLocaleDateString() : '-'
+    }
+  ];
+
   return (
-    <div style={{ margin: '2rem 0', color: '#222' }}>
-      <h3 style={{ color: '#111' }}>Lottery Management</h3>
-      {/* Current month summary/status */}
-      <div style={{ marginBottom: 16, padding: 12, background: '#f0f4fa', borderRadius: 6, border: '1px solid #e0e0e0' }}>
-        <strong>Current Month: {month}/{year}</strong><br />
-        Status: <span style={{ fontWeight: 600 }}>{currentLottery ? currentLottery.status : 'Not drawn'}</span><br />
-        {currentLottery && currentLottery.status === 'active' && (
-          <span>Winner: <strong>{currentLottery.winner?.username || '-'}</strong></span>
-        )}
-        {currentLottery && currentLottery.status === 'bought' && (
-          <span>Buyout by: <strong>{currentLottery.boughtBy?.username || '-'}</strong></span>
-        )}
-        {!currentLottery && <span>No draw or buyout yet for this month.</span>}
+    <div className="lottery-management">
+      <div className="page-header">
+        <h1>Lottery Management</h1>
+        <p className="page-description">Manage monthly lottery draws and view history</p>
       </div>
-      <button onClick={handleDraw} disabled={drawLoading || drawDisabled} style={{ marginBottom: 16, background: drawDisabled ? '#bbb' : '#007bff', color: '#fff', border: 'none', borderRadius: 4, padding: '10px 24px', fontWeight: 'bold', cursor: drawDisabled ? 'not-allowed' : 'pointer' }}>
-        {drawLoading ? 'Drawing...' : `Draw Lottery for ${month}/${year}`}
-      </button>
-      {drawDisabled && <div style={{ color: '#888', marginBottom: 8 }}>Draw is disabled: already drawn or bought for this month.</div>}
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 8 }}>{success}</div>}
-      {loading ? <div>Loading...</div> : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', color: '#222' }}>
-          <thead>
-            <tr style={{ background: '#e6eaf3', color: '#111' }}>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Month/Year</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Winner</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Buyout</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Status</th>
-              <th style={{ border: '1px solid #b0b0b0', padding: 8 }}>Draw Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map(lottery => (
-              <tr key={lottery._id} style={{ background: '#f9f9f9', color: '#222' }}>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{lottery.month}/{lottery.year}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{lottery.winner?.username || '-'}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{lottery.boughtBy?.username || '-'}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{lottery.status}</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{lottery.drawDate ? new Date(lottery.drawDate).toLocaleDateString() : '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {(error || success) && (
+        <div className="alerts-container">
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
+        </div>
       )}
+
+      <div className="card current-lottery">
+        <div className="card-header">
+          <h2>Current Month: {month}/{year}</h2>
+        </div>
+        <div className="card-body">
+          <div className="status-summary">
+            <div className="status-item">
+              <span className="status-label">Status:</span>
+              <span className={`status-value status-${currentLottery?.status || 'pending'}`}>
+                {currentLottery ? currentLottery.status.charAt(0).toUpperCase() + currentLottery.status.slice(1) : 'Not drawn'}
+              </span>
+            </div>
+            
+            {currentLottery?.status === 'active' && (
+              <div className="status-item">
+                <span className="status-label">Winner:</span>
+                <span className="status-value winner">
+                  {currentLottery.winner?.username || 'Not available'}
+                </span>
+              </div>
+            )}
+            
+            {currentLottery?.status === 'bought' && (
+              <div className="status-item">
+                <span className="status-label">Buyout by:</span>
+                <span className="status-value buyout">
+                  {currentLottery.boughtBy?.username || 'Unknown'}
+                </span>
+              </div>
+            )}
+            
+            {!currentLottery && (
+              <div className="no-lottery">
+                No draw or buyout recorded for this month.
+              </div>
+            )}
+          </div>
+          
+          <div className="actions">
+            <button 
+              onClick={handleDraw} 
+              disabled={drawLoading || drawDisabled} 
+              className={`btn btn-primary ${drawLoading ? 'loading' : ''}`}
+            >
+              {drawLoading ? 'Drawing...' : `Draw Lottery for ${month}/${year}`}
+            </button>
+            
+            {drawDisabled && (
+              <div className="draw-disabled-note">
+                <i className="icon-info"></i>
+                <span>Draw is disabled: already drawn or bought for this month.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <h2>Lottery History</h2>
+        </div>
+        <div className="table-container">
+          <ResponsiveTable 
+            columns={lotteryColumns}
+            data={history}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      </div>
     </div>
   );
 }

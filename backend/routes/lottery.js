@@ -36,19 +36,85 @@ router.post('/draw', async (req, res) => {
 // Buyout (user)
 router.post('/buyout', async (req, res) => {
   try {
-    const { member, month, year } = req.body;
-    // Mark lottery as bought for this month
-    const lottery = new Lottery({
-      month,
-      year,
-      boughtBy: member,
-      status: 'bought',
-      drawDate: new Date(),
+    const { member, months } = req.body;
+    
+    // Validate request
+    if (!member || !months || !Array.isArray(months) || months.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request. Member ID and months array are required.'
+      });
+    }
+
+    // Process multiple months
+    const results = await Promise.all(months.map(async ({ month, year }) => {
+      try {
+        // Validate month and year
+        if (!month || !year) {
+          return { 
+            month: month || 'invalid', 
+            year: year || 'invalid', 
+            success: false, 
+            message: 'Month and year are required' 
+          };
+        }
+
+        // Check if lottery already exists for this month
+        const existingLottery = await Lottery.findOne({ month: Number(month), year: Number(year) });
+        if (existingLottery) {
+          return { 
+            month: Number(month), 
+            year: Number(year), 
+            success: false, 
+            message: 'Lottery already exists for this month' 
+          };
+        }
+
+        // Create new lottery entry
+        const lottery = new Lottery({
+          month: Number(month),
+          year: Number(year),
+          boughtBy: member,
+          status: 'bought',
+          buyoutDate: new Date(),
+          drawDate: null
+        });
+        
+        await lottery.save();
+        return { 
+          month: Number(month), 
+          year: Number(year), 
+          success: true, 
+          lotteryId: lottery._id 
+        };
+      } catch (err) {
+        console.error('Error processing month:', { month, year, error: err });
+        return { 
+          month: month, 
+          year: year, 
+          success: false, 
+          message: err.message || 'Error processing this month' 
+        };
+      }
+    }));
+
+    // Check if any operations were successful
+    const hasSuccess = results.some(r => r.success);
+    
+    res.status(hasSuccess ? 200 : 400).json({ 
+      success: hasSuccess,
+      message: hasSuccess 
+        ? 'Lottery buyout processed' 
+        : 'Failed to process any lottery buyouts',
+      results 
     });
-    await lottery.save();
-    res.json({ message: 'Lottery bought out', lottery });
   } catch (err) {
-    res.status(400).json({ message: 'Error buying out lottery', error: err.message });
+    console.error('Error in buyout endpoint:', err);
+    res.status(400).json({ 
+      success: false,
+      message: 'Error processing lottery buyout', 
+      error: err.message 
+    });
   }
 });
 
