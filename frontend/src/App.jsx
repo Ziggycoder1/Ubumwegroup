@@ -18,6 +18,7 @@ import FinancialReports from './FinancialReports';
 import AuditTrail from './AuditTrail';
 import MonthlySummary from './MonthlySummary';
 import ReportsPage from './components/ReportsPage';
+import EarningsDashboard from './EarningsDashboard';
 import { useAuth } from './context/AuthContext';
 
 function RequireAuth({ children }) {
@@ -94,6 +95,7 @@ function App() {
           <Route path="/reports" element={<RequireAuth><ReportsPage /></RequireAuth>} />
           <Route path="/audit" element={<RequireAuth><AuditTrail /></RequireAuth>} />
           <Route path="/monthly-summary" element={<RequireAuth><MonthlySummary /></RequireAuth>} />
+          <Route path="/earnings" element={<RequireAuth><EarningsDashboard /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>

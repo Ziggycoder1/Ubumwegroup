@@ -69,11 +69,13 @@ const contributionRoutes = require('./routes/contributions');
 const loanRoutes = require('./routes/loans');
 const lotteryRoutes = require('./routes/lottery');
 const penaltiesRoutes = require('./routes/penalties');
+const earningsRoutes = require('./routes/earnings');
 
 app.use('/api/contributions', contributionRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/lottery', lotteryRoutes);
 app.use('/api/penalties', penaltiesRoutes);
+app.use('/api/earnings', earningsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 

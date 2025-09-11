@@ -8,6 +8,10 @@ function LoanManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showRepaymentModal, setShowRepaymentModal] = useState(false);
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [repaymentAmount, setRepaymentAmount] = useState('');
+  const [repaymentLoading, setRepaymentLoading] = useState(false);
 
   const fetchLoans = async () => {
     setLoading(true);
@@ -35,6 +39,62 @@ function LoanManagement() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleAddRepayment = (loan) => {
+    setSelectedLoan(loan);
+    setRepaymentAmount('');
+    setShowRepaymentModal(true);
+  };
+
+  const handleRepaymentSubmit = async () => {
+    if (!repaymentAmount || isNaN(repaymentAmount) || parseFloat(repaymentAmount) <= 0) {
+      setError('Please enter a valid repayment amount');
+      return;
+    }
+
+    setRepaymentLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await fetch(`${API_BASE}/loans/admin-repay/${selectedLoan._id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: parseFloat(repaymentAmount) }),
+      });
+
+      if (!res.ok) throw new Error('Failed to process repayment');
+
+      const data = await res.json();
+      setSuccess(`Repayment processed successfully! Interest rate: ${data.interestRate}%, Interest amount: ${formatCurrency(data.interestAmount)}`);
+      setShowRepaymentModal(false);
+      fetchLoans();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRepaymentLoading(false);
+    }
+  };
+
+  const calculateLoanDetails = (loan) => {
+    if (!loan.approvedAt) return { interestRate: 0, interestAmount: 0, totalDue: loan.amount };
+    
+    const approvalDate = new Date(loan.approvedAt);
+    const currentDate = new Date();
+    const monthsDiff = Math.floor((currentDate - approvalDate) / (1000 * 60 * 60 * 24 * 30));
+    
+    let interestRate = 5;
+    if (monthsDiff >= 3) {
+      interestRate = 10;
+    }
+    
+    const interestAmount = (loan.amount * interestRate) / 100;
+    const totalDue = loan.amount + interestAmount;
+    
+    return { interestRate, interestAmount, totalDue };
   };
 
   const formatCurrency = (amount) => {
@@ -66,6 +126,54 @@ function LoanManagement() {
       )
     },
     { 
+      key: 'takenDate', 
+      label: 'Taken Date',
+      render: (loan) => (
+        <span className="date-field">
+          {loan.approvedAt ? new Date(loan.approvedAt).toLocaleDateString() : '-'}
+        </span>
+      )
+    },
+    { 
+      key: 'repaidAmount', 
+      label: 'Repaid Amount',
+      render: (loan) => {
+        const totalRepaid = loan.repayments?.reduce((sum, r) => sum + r.amount, 0) || 0;
+        return (
+          <span className="repaid-amount">
+            {formatCurrency(totalRepaid)}
+          </span>
+        );
+      }
+    },
+    { 
+      key: 'remainingBalance', 
+      label: 'Remaining Balance',
+      render: (loan) => {
+        const balance = loan.remainingBalance || 0;
+        return (
+          <span className={`remaining-balance ${balance > 0 ? 'has-balance' : 'paid-off'}`}>
+            {formatCurrency(balance)}
+          </span>
+        );
+      }
+    },
+    { 
+      key: 'returnedDate', 
+      label: 'Returned Date',
+      render: (loan) => {
+        if (loan.status === 'paid' && loan.repayments?.length > 0) {
+          const lastRepayment = loan.repayments[loan.repayments.length - 1];
+          return (
+            <span className="date-field returned">
+              {new Date(lastRepayment.paidAt).toLocaleDateString()}
+            </span>
+          );
+        }
+        return <span className="date-field">-</span>;
+      }
+    },
+    { 
       key: 'interest', 
       label: 'Interest (%)',
       render: (loan) => `${loan.interest}%`
@@ -73,22 +181,14 @@ function LoanManagement() {
     { 
       key: 'repayments', 
       label: 'Repayments',
-      render: (loan) => (
-        loan.repayments?.length > 0 ? (
-          <div className="repayments-list">
-            {loan.repayments.map((r, i) => (
-              <div key={i} className="repayment-item">
-                <span className="repayment-amount">{formatCurrency(r.amount)}</span>
-                <span className="repayment-date">
-                  {new Date(r.paidAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <span className="no-repayments">No repayments yet</span>
-        )
-      )
+      render: (loan) => {
+        const totalRepaid = loan.repayments?.reduce((sum, r) => sum + r.amount, 0) || 0;
+        return (
+          <span className="repayment-total">
+            {formatCurrency(totalRepaid)}
+          </span>
+        );
+      }
     },
     { 
       key: 'returnBy', 
@@ -109,21 +209,25 @@ function LoanManagement() {
       key: 'actions',
       label: 'Actions',
       render: (loan) => (
-        loan.status === 'pending' ? (
-          <button 
-            onClick={() => handleApprove(loan._id)}
-            className="btn btn-approve"
-          >
-            Approve
-          </button>
-        ) : (
-          <button 
-            disabled 
-            className="btn btn-approved"
-          >
-            Approved
-          </button>
-        )
+        <div className="action-buttons">
+          {loan.status === 'pending' ? (
+            <button 
+              onClick={() => handleApprove(loan._id)}
+              className="btn btn-approve"
+            >
+              Approve
+            </button>
+          ) : loan.status === 'approved' ? (
+            <button 
+              onClick={() => handleAddRepayment(loan)}
+              className="btn btn-edit"
+            >
+              Add Repayment
+            </button>
+          ) : (
+            <span className="status-paid">Paid</span>
+          )}
+        </div>
       )
     }
   ];
@@ -155,6 +259,102 @@ function LoanManagement() {
           />
         </div>
       </div>
+
+      {/* Repayment Modal */}
+      {showRepaymentModal && selectedLoan && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Add Repayment</h3>
+              <button 
+                className="modal-close"
+                onClick={() => setShowRepaymentModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="loan-details">
+                <div className="detail-row">
+                  <span className="label">Member:</span>
+                  <span className="value">{selectedLoan.member?.name || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Original Loan Amount:</span>
+                  <span className="value">{formatCurrency(selectedLoan.originalAmount || selectedLoan.amount)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Remaining Balance:</span>
+                  <span className={`value ${(selectedLoan.remainingBalance || 0) > 0 ? 'has-balance' : 'paid-off'}`}>
+                    {formatCurrency(selectedLoan.remainingBalance || 0)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Current Interest Rate:</span>
+                  <span className="value">{selectedLoan.interest}%</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Total Interest Paid:</span>
+                  <span className="value">{formatCurrency(selectedLoan.totalInterestPaid || 0)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Total Repaid:</span>
+                  <span className="value">{formatCurrency(selectedLoan.repayments?.reduce((sum, r) => sum + r.amount, 0) || 0)}</span>
+                </div>
+              </div>
+              <div className="repayment-form">
+                <div className="form-group">
+                  <label htmlFor="repaymentAmount">Payment Amount (Principal - RWF):</label>
+                  <input
+                    type="number"
+                    id="repaymentAmount"
+                    value={repaymentAmount}
+                    onChange={(e) => setRepaymentAmount(e.target.value)}
+                    placeholder={`Enter amount (max: ${formatCurrency(selectedLoan.remainingBalance || 0)})`}
+                    min="1"
+                    max={selectedLoan.remainingBalance || 0}
+                    required
+                  />
+                  <small className="payment-help">
+                    Interest will be calculated on this amount. Total payment = Principal + Interest
+                  </small>
+                </div>
+                {repaymentAmount && parseFloat(repaymentAmount) > 0 && (
+                  <div className="payment-preview">
+                    <div className="detail-row">
+                      <span className="label">Principal Amount:</span>
+                      <span className="value">{formatCurrency(parseFloat(repaymentAmount) || 0)}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">Interest ({selectedLoan.interest}%):</span>
+                      <span className="value">{formatCurrency((parseFloat(repaymentAmount) || 0) * (selectedLoan.interest || 0) / 100)}</span>
+                    </div>
+                    <div className="detail-row total-row">
+                      <span className="label">Total Payment:</span>
+                      <span className="value">{formatCurrency((parseFloat(repaymentAmount) || 0) + ((parseFloat(repaymentAmount) || 0) * (selectedLoan.interest || 0) / 100))}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-cancel"
+                onClick={() => setShowRepaymentModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleRepaymentSubmit}
+                disabled={repaymentLoading}
+              >
+                {repaymentLoading ? 'Processing...' : 'Process Repayment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

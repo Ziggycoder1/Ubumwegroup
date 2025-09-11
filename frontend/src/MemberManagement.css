@@ -1,7 +1,7 @@
 /* Base styles */
 .member-management {
   padding: 1.5rem;
-  color: #2d3748;
+  color: #000000;
   max-width: 1400px;
   margin: 0 auto;
   min-height: calc(100vh - 3rem);
@@ -16,12 +16,12 @@
 .page-header h1 {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
 .page-description {
-  color: #718096;
+  color: #374151;
   margin: 0;
   font-size: 1rem;
 }
@@ -45,7 +45,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #000000;
 }
 
 .member-management h3 {

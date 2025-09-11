@@ -4,17 +4,34 @@ import './Dashboard.css';
 import { useAuth } from './context/AuthContext';
 
 const DashboardLayout = ({ role, children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const isMobile = window.innerWidth < 768;
   const menuButtonRef = useRef();
   const sidebarRef = useRef();
+  
+  // Initialize sidebar state - open by default on desktop, closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Check localStorage first for saved preference
+    const savedState = localStorage.getItem('sidebarOpen');
+    if (savedState !== null) {
+      return JSON.parse(savedState);
+    }
+    // Default: open on desktop, closed on mobile
+    return !isMobile;
+  });
 
-  // Close sidebar when route changes
+  // Save sidebar state to localStorage when it changes
   useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
+  
+  // Close sidebar on mobile when route changes, but keep desktop state
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   // Toggle sidebar
   const toggleSidebar = useCallback((e) => {

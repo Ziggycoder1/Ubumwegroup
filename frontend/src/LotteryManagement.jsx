@@ -10,6 +10,7 @@ function getCurrentMonthYear() {
 
 function LotteryManagement() {
   const [history, setHistory] = useState([]);
+  const [currentLotteryData, setCurrentLotteryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,10 +30,26 @@ function LotteryManagement() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchHistory(); }, []);
+  const fetchCurrentLottery = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/lottery/current`);
+      const data = await res.json();
+      setCurrentLotteryData(data);
+    } catch (err) {
+      console.error('Error fetching current lottery:', err);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchHistory();
+    fetchCurrentLottery();
+  }, []);
 
   // Find current month lottery
-  const currentLottery = history.find(l => l.month === month && l.year === year);
+  const currentLottery = currentLotteryData?.currentLottery;
+  const boughtMonths = currentLotteryData?.boughtMonths || [];
+  const totalFund = currentLotteryData?.totalFund || 0;
   const drawDisabled = !!currentLottery && (currentLottery.status === 'active' || currentLottery.status === 'bought');
 
   const handleDraw = async () => {
@@ -40,19 +57,57 @@ function LotteryManagement() {
     setError('');
     setSuccess('');
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Please login to perform this action');
+      }
+      
       const res = await fetch(`${API_BASE}/lottery/draw`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ month, year })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to draw lottery');
+      if (!data.success) throw new Error(data.message || 'Failed to draw lottery');
       setSuccess(`Winner: ${data.winner}`);
       fetchHistory();
+      fetchCurrentLottery();
     } catch (err) {
       setError(err.message);
     }
     setDrawLoading(false);
+  };
+
+  const handleBuyout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Please login to perform this action');
+      }
+      
+      const res = await fetch(`${API_BASE}/lottery/buyout`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          month, 
+          year, 
+          totalAmount: 10000 
+        })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || 'Failed to buyout lottery');
+      setSuccess('Lottery buyout completed successfully');
+      fetchHistory();
+      fetchCurrentLottery();
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const lotteryColumns = [
@@ -69,7 +124,7 @@ function LotteryManagement() {
     { 
       key: 'buyout', 
       label: 'Buyout By',
-      render: (lottery) => lottery.boughtBy?.username || '-'
+      render: (lottery) => lottery.boughtBy?.username || lottery.requestedBy?.username || '-'
     },
     { 
       key: 'status', 
@@ -81,11 +136,17 @@ function LotteryManagement() {
       )
     },
     { 
+      key: 'amount', 
+      label: 'Amount',
+      render: (lottery) => lottery.status === 'bought' ? '10000 RWF' : '0 RWF'
+    },
+    { 
       key: 'drawDate', 
       label: 'Draw Date',
       render: (lottery) => lottery.drawDate ? new Date(lottery.drawDate).toLocaleDateString() : '-'
     }
   ];
+
 
   return (
     <div className="lottery-management">
@@ -114,6 +175,20 @@ function LotteryManagement() {
               </span>
             </div>
             
+            <div className="status-item">
+              <span className="status-label">Total Fund:</span>
+              <span className="status-value fund">
+                {totalFund.toLocaleString()} RWF
+              </span>
+            </div>
+            
+            <div className="status-item">
+              <span className="status-label">Bought Months:</span>
+              <span className="status-value bought-months">
+                {boughtMonths.length > 0 ? boughtMonths.join(', ') : 'None'}
+              </span>
+            </div>
+            
             {currentLottery?.status === 'active' && (
               <div className="status-item">
                 <span className="status-label">Winner:</span>
@@ -127,7 +202,25 @@ function LotteryManagement() {
               <div className="status-item">
                 <span className="status-label">Buyout by:</span>
                 <span className="status-value buyout">
-                  {currentLottery.boughtBy?.username || 'Unknown'}
+                  {currentLottery.boughtBy?.username || currentLottery.requestedBy?.username || 'Unknown'}
+                </span>
+              </div>
+            )}
+            
+            {currentLottery?.status === 'pending' && (
+              <div className="status-item">
+                <span className="status-label">Requested by:</span>
+                <span className="status-value requested">
+                  {currentLottery.requestedBy?.username || 'Unknown'}
+                </span>
+              </div>
+            )}
+            
+            {currentLottery?.status === 'approved' && (
+              <div className="status-item">
+                <span className="status-label">Approved by:</span>
+                <span className="status-value approved">
+                  {currentLottery.approvedBy?.username || 'Unknown'}
                 </span>
               </div>
             )}
@@ -142,21 +235,30 @@ function LotteryManagement() {
           <div className="actions">
             <button 
               onClick={handleDraw} 
-              disabled={drawLoading || drawDisabled} 
+              disabled={drawLoading || drawDisabled || boughtMonths.includes(month)} 
               className={`btn btn-primary ${drawLoading ? 'loading' : ''}`}
             >
               {drawLoading ? 'Drawing...' : `Draw Lottery for ${month}/${year}`}
             </button>
             
-            {drawDisabled && (
+            <button 
+              onClick={handleBuyout} 
+              disabled={drawLoading || drawDisabled || boughtMonths.includes(month)} 
+              className="btn btn-success"
+            >
+              Buyout Month ({month}/{year}) - 10000 RWF
+            </button>
+            
+            {(drawDisabled || boughtMonths.includes(month)) && (
               <div className="draw-disabled-note">
                 <i className="icon-info"></i>
-                <span>Draw is disabled: already drawn or bought for this month.</span>
+                <span>This month is already processed or bought.</span>
               </div>
             )}
           </div>
         </div>
       </div>
+
 
       <div className="card">
         <div className="card-header">

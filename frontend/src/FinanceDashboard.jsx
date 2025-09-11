@@ -3,156 +3,257 @@ import { Link } from 'react-router-dom';
 import API_BASE from "./api";
 import DashboardLayout from './DashboardLayout';
 import StatCard from './StatCard';
+import './FinanceDashboard.css';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line
+} from 'recharts';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const FinanceDashboard = () => {
-  const [transactions, setTransactions] = useState([]);
+  const [earnings, setEarnings] = useState({
+    summary: {},
+    monthlyBreakdown: []
+  });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchEarnings = async () => {
       try {
-        const res = await fetch(`${API_BASE}/contributions`);
+        const res = await fetch(`${API_BASE}/earnings/summary`);
         const data = await res.json();
-        // Format each contribution as a transaction row
-        const formatted = data.map((item) => ({
-          date: item.paidAt ? item.paidAt.slice(0, 10) : "N/A",
-          member: item.member?.username || "N/A",
-          type: "Contribution",
-          amount: item.amount + " RWF",
-          balance: "-", // You can calculate running balance if needed
-        }));
-        setTransactions(formatted);
+        setEarnings(data);
       } catch (err) {
-        setTransactions([]);
+        console.error('Error fetching earnings:', err);
+        setError('Failed to fetch earnings data');
       } finally {
         setLoading(false);
       }
     };
-    fetchTransactions();
+    fetchEarnings();
   }, []);
+
+  // Prepare data for charts
+  const revenueSourcesData = [
+    { name: 'Contributions', value: earnings.totalEarnings?.contributions || 0 },
+    { name: 'Loan Interest', value: earnings.totalEarnings?.loanInterest || 0 },
+    { name: 'Lottery Sales', value: earnings.totalEarnings?.lottery || 0 },
+    { name: 'Loan Penalties', value: earnings.totalEarnings?.loanPenalty || 0 },
+    { name: 'Other Penalties', value: earnings.totalEarnings?.penalties || 0 },
+  ];
+
+  const monthlyData = earnings.monthlyBreakdown || [];
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('rw-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
+  const totalEarnings = earnings.totalEarnings?.overall || 0;
+
+  if (loading) {
+    return (
+      <DashboardLayout role="finance">
+        <div className="loading">Loading financial data...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="finance">
+        <div className="error">{error}</div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="finance">
+      {/* Financial Overview Cards */}
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Financial Overview</h3>
         </div>
         <div className="card-body">
           <div className="stats-grid">
-            <StatCard title="Total Group Funds" value="5,400,000 RWF" icon="💰" trend="up" />
-            <StatCard title="Active Loans" value="2,400,000 RWF" icon="🏦" trend="up" />
-            <StatCard title="Pending Penalties" value="50,000 RWF" icon="⚠️" trend="same" />
-            <StatCard title="Lottery Fund" value="200,000 RWF" icon="🎟️" trend="down" />
+            <StatCard 
+              title="Total Earnings" 
+              value={formatCurrency(totalEarnings)} 
+              icon="💰" 
+              trend="up" 
+            />
+            <StatCard 
+              title="Contributions" 
+              value={formatCurrency(earnings.totalEarnings?.contributions || 0)} 
+              icon="👥" 
+              trend="up" 
+            />
+            <StatCard 
+              title="Lottery Revenue" 
+              value={formatCurrency(earnings.totalEarnings?.lottery || 0)} 
+              icon="🎟️" 
+              trend="up" 
+            />
+            <StatCard 
+              title="Loan Interest" 
+              value={formatCurrency(earnings.totalEarnings?.loanInterest || 0)} 
+              icon="🏦" 
+              trend="up" 
+            />
           </div>
         </div>
       </div>
 
+      {/* Revenue Sources Chart */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Recent Transactions</h3>
-          <button className="btn-view-all">View All</button>
+          <h3 className="card-title">Revenue Sources</h3>
         </div>
         <div className="card-body">
-          <TransactionsTable transactions={transactions} loading={loading} />
+          <div className="charts-grid">
+            <div className="chart-container">
+              <h4>Revenue Distribution</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={revenueSourcesData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {revenueSourcesData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div className="chart-container">
+              <h4>Revenue by Source</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={revenueSourcesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(value) => formatCurrency(value)} />
+                  <Bar dataKey="value" fill="#8884d8">
+                    {revenueSourcesData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Monthly Breakdown Chart */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Monthly Earnings Breakdown</h3>
+        </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="month" 
+                tickFormatter={(month) => new Date(2025, month - 1).toLocaleString('default', { month: 'short' })}
+              />
+              <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+              <Tooltip 
+                formatter={(value) => formatCurrency(value)}
+                labelFormatter={(month) => new Date(2025, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="contributions" stroke="#8884d8" name="Contributions" />
+              <Line type="monotone" dataKey="loanInterest" stroke="#82ca9d" name="Loan Interest" />
+              <Line type="monotone" dataKey="lottery" stroke="#ffc658" name="Lottery Sales" />
+              <Line type="monotone" dataKey="penalties" stroke="#ff7300" name="Penalties" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Lottery Focus Section */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Lottery Revenue Analysis</h3>
+        </div>
+        <div className="card-body">
+          <div className="lottery-stats">
+            <div className="stat-item">
+              <h4>Total Lottery Revenue</h4>
+              <p className="stat-value">{formatCurrency(earnings.totalEarnings?.lottery || 0)}</p>
+            </div>
+            <div className="stat-item">
+              <h4>This Month</h4>
+              <p className="stat-value">{formatCurrency(earnings.currentMonthEarnings?.lottery || 0)}</p>
+            </div>
+            <div className="stat-item">
+              <h4>Lottery Tickets Sold</h4>
+              <p className="stat-value">{(earnings.totalEarnings?.lottery || 0) / 10000}</p>
+            </div>
+          </div>
+          
+          <div className="chart-container">
+            <h4>Monthly Lottery Revenue</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="month" 
+                  tickFormatter={(month) => new Date(2025, month - 1).toLocaleString('default', { month: 'short' })}
+                />
+                <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Bar dataKey="lottery" fill="#ffc658" name="Lottery Revenue" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Generate Reports Section */}
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Generate Reports</h3>
         </div>
         <div className="card-body">
-          <ReportOptions />
+          <div className="report-options">
+            <Link to="/reports" className="report-btn">
+              <span className="report-icon">📊</span>
+              View Full Financial Report
+            </Link>
+            <button className="report-btn">
+              <span className="report-icon">📅</span>
+              Monthly Contributions
+            </button>
+            <button className="report-btn">
+              <span className="report-icon">🏦</span>
+              Loan Portfolio
+            </button>
+            <button className="report-btn">
+              <span className="report-icon">🎟️</span>
+              Lottery History
+            </button>
+          </div>
         </div>
       </div>
     </DashboardLayout>
   );
 };
-
-const TransactionsTable = ({ transactions, loading }) => (
-  <table className="data-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Member</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Balance</th>
-      </tr>
-    </thead>
-    <tbody>
-      {loading ? (
-        <tr>
-          <td colSpan={5}>Loading...</td>
-        </tr>
-      ) : transactions.length === 0 ? (
-        <tr>
-          <td colSpan={5}>No transactions found.</td>
-        </tr>
-      ) : (
-        transactions.map((tx, idx) => (
-          <tr key={idx}>
-            <td>{tx.date}</td>
-            <td>{tx.member}</td>
-            <td>{tx.type}</td>
-            <td>{tx.amount}</td>
-            <td>{tx.balance}</td>
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
-);
-
-const ReportOptions = () => (
-  <div className="report-options">
-    <Link to="/reports" className="report-btn">
-      <span className="report-icon">📊</span>
-      View Full Financial Report
-    </Link>
-    <button className="report-btn">
-      <span className="report-icon">📅</span>
-      Monthly Contributions
-    </button>
-    <button className="report-btn">
-      <span className="report-icon">🏦</span>
-      Loan Portfolio
-    </button>
-    <button className="report-btn">
-      <span className="report-icon">🎟️</span>
-      Lottery History
-    </button>
-    <style jsx>{`
-      .report-options {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
-        padding: 15px 0;
-      }
-      .report-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px 10px;
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: inherit;
-      }
-      .report-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-      .report-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-      }
-    `}</style>
-  </div>
-);
 
 export default FinanceDashboard;

@@ -15,12 +15,12 @@
 .page-header h1 {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
 .page-description {
-  color: #718096;
+  color: #374151;
   margin: 0;
 }
 
@@ -43,7 +43,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #000000;
 }
 
 /* Form styles */
