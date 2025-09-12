@@ -1,0 +1,152 @@
+/* FinanceProfilePage.css - Responsive styling for Finance Officer Profile Page */
+
+.finance-profile-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 70px);
+}
+
+.finance-profile-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.finance-profile-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  padding: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.finance-profile-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.finance-profile-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.finance-profile-icon {
+  font-size: 3rem;
+  opacity: 0.9;
+  z-index: 1;
+  position: relative;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.finance-profile-body {
+  padding: 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .finance-profile-container {
+    padding: 15px;
+  }
+
+  .finance-profile-header {
+    padding: 20px;
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .finance-profile-title {
+    font-size: 1.5rem;
+  }
+
+  .finance-profile-icon {
+    font-size: 2.5rem;
+  }
+
+  .finance-profile-body {
+    padding: 25px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .finance-profile-container {
+    padding: 10px;
+  }
+
+  .finance-profile-header {
+    padding: 15px;
+  }
+
+  .finance-profile-title {
+    font-size: 1.3rem;
+  }
+
+  .finance-profile-icon {
+    font-size: 2rem;
+  }
+
+  .finance-profile-body {
+    padding: 20px 15px;
+  }
+
+  .finance-profile-card {
+    border-radius: 8px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .finance-profile-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+  }
+  
+  .finance-profile-body {
+    background: #1f2937;
+  }
+}
+
+/* Print styles */
+@media print {
+  .finance-profile-container {
+    padding: 0;
+    margin: 0;
+  }
+  
+  .finance-profile-header {
+    background: #8b5cf6 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .finance-profile-card {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+  }
+}

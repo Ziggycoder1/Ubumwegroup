@@ -6,16 +6,26 @@ import { useAuth } from './context/AuthContext';
 const DashboardLayout = ({ role, children }) => {
   const { user } = useAuth();
   const location = useLocation();
-  const isMobile = window.innerWidth < 768;
   const menuButtonRef = useRef();
   const sidebarRef = useRef();
+  
+  // Use state for mobile detection with proper resize handling
+  const [isMobile, setIsMobile] = useState(() => {
+    // Check if window is available (for SSR compatibility)
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
   
   // Initialize sidebar state - open by default on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     // Check localStorage first for saved preference
-    const savedState = localStorage.getItem('sidebarOpen');
-    if (savedState !== null) {
-      return JSON.parse(savedState);
+    if (typeof localStorage !== 'undefined') {
+      const savedState = localStorage.getItem('sidebarOpen');
+      if (savedState !== null) {
+        return JSON.parse(savedState);
+      }
     }
     // Default: open on desktop, closed on mobile
     return !isMobile;
@@ -23,7 +33,25 @@ const DashboardLayout = ({ role, children }) => {
 
   // Save sidebar state to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    }
+  }, [sidebarOpen]);
+  
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      const newIsMobile = window.innerWidth < 768;
+      setIsMobile(newIsMobile);
+      
+      // Auto-close sidebar when switching to mobile
+      if (newIsMobile && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [sidebarOpen]);
   
   // Close sidebar on mobile when route changes, but keep desktop state
@@ -55,8 +83,13 @@ const DashboardLayout = ({ role, children }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (isMobile && sidebarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isMobile, sidebarOpen]);
 
   // Role-based navigation links
@@ -142,7 +175,7 @@ const DashboardLayout = ({ role, children }) => {
       {/* Overlay - Only shown when sidebar is open on mobile */}
       {isMobile && sidebarOpen && (
         <div 
-          className="sidebar-overlay" 
+          className="sidebar-overlay active" 
           onClick={toggleSidebar}
         />
       )}

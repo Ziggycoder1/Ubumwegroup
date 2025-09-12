@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import API_BASE from './api';
+import './ProfileForm.css';
 
 export default function ProfileForm({ role }) {
   const { user, token, login } = useAuth();
@@ -81,91 +82,121 @@ export default function ProfileForm({ role }) {
   const { headerBg, buttonBg } = roleStyles[role] || roleStyles.member;
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto' }}>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div className="form-group">
-          <label>Full Name</label>
-          <input 
-            type="text" 
-            name="name" 
-            value={form.name} 
-            onChange={handleChange} 
-            className="form-control"
-            required 
-          />
+    <div className="profile-form-container">
+      <form onSubmit={handleSubmit} className="profile-form">
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input 
+              id="name"
+              type="text" 
+              name="name" 
+              value={form.name} 
+              onChange={handleChange} 
+              className="form-control"
+              required 
+              placeholder="Enter your full name"
+            />
+          </div>
         </div>
         
-        <div className="form-group">
-          <label>Email</label>
-          <input 
-            type="email" 
-            name="email" 
-            value={form.email} 
-            onChange={handleChange} 
-            className="form-control"
-            required 
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="email">Email Address</label>
+            <input 
+              id="email"
+              type="email" 
+              name="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              className="form-control"
+              required 
+              placeholder="Enter your email address"
+            />
+          </div>
         </div>
         
-        <div className="form-group">
-          <label>Phone Number</label>
-          <input 
-            type="tel" 
-            name="phone" 
-            value={form.phone || ''} 
-            onChange={handleChange} 
-            className="form-control"
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="phone">Phone Number</label>
+            <input 
+              id="phone"
+              type="tel" 
+              name="phone" 
+              value={form.phone || ''} 
+              onChange={handleChange} 
+              className="form-control"
+              placeholder="Enter your phone number"
+            />
+          </div>
         </div>
 
         {role === 'member' && (
           <>
-            <div className="form-group">
-              <label>ID Number</label>
-              <input 
-                type="text" 
-                name="idNumber" 
-                value={form.idNumber || ''} 
-                onChange={handleChange} 
-                className="form-control"
-                disabled={!user?.idNumber}
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="idNumber">ID Number</label>
+                <input 
+                  id="idNumber"
+                  type="text" 
+                  name="idNumber" 
+                  value={form.idNumber || ''} 
+                  onChange={handleChange} 
+                  className="form-control"
+                  disabled={!user?.idNumber}
+                  placeholder="Enter your ID number"
+                />
+              </div>
             </div>
             
-            <div className="form-group">
-              <label>Address</label>
-              <textarea 
-                name="address" 
-                value={form.address || ''} 
-                onChange={handleChange} 
-                className="form-control"
-                rows="3"
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="address">Address</label>
+                <textarea 
+                  id="address"
+                  name="address" 
+                  value={form.address || ''} 
+                  onChange={handleChange} 
+                  className="form-control"
+                  rows="3"
+                  placeholder="Enter your address"
+                />
+              </div>
             </div>
           </>
         )}
         
-        <div className="form-group">
-          <label>Role</label>
-          <input 
-            type="text" 
-            value={form.role} 
-            className="form-control" 
-            disabled 
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="role">Role</label>
+            <input 
+              id="role"
+              type="text" 
+              value={form.role} 
+              className="form-control" 
+              disabled 
+              readOnly
+            />
+          </div>
         </div>
         
         {error && <div className="alert alert-danger">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
         
-        <div className="form-group" style={{ marginTop: '1rem' }}>
+        <div className="form-actions">
           <button 
             type="submit" 
             className="btn btn-primary"
-            style={{ background: buttonBg, borderColor: buttonBg }}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? (
+              <span className="btn-loading">
+                <span className="spinner"></span>
+                Saving...
+              </span>
+            ) : (
+              'Save Changes'
+            )}
           </button>
         </div>
       </form>
