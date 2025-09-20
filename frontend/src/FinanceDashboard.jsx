@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import API_BASE from "./api";
 import DashboardLayout from './DashboardLayout';
 import StatCard from './StatCard';
+import { useAuth } from './context/AuthContext';
 import './FinanceDashboard.css';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -12,6 +13,7 @@ import {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const FinanceDashboard = () => {
+  const { user } = useAuth();
   const [earnings, setEarnings] = useState({
     summary: {},
     monthlyBreakdown: []
@@ -97,12 +99,6 @@ const FinanceDashboard = () => {
               title="Lottery Revenue" 
               value={formatCurrency(earnings.totalEarnings?.lottery || 0)} 
               icon="🎟️" 
-              trend="up" 
-            />
-            <StatCard 
-              title="Loan Interest" 
-              value={formatCurrency(earnings.totalEarnings?.loanInterest || 0)} 
-              icon="🏦" 
               trend="up" 
             />
           </div>

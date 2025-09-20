@@ -894,3 +894,97 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* ========== LOAN REQUEST FORM STYLES ========== */
+  .loan-request-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .loan-amount-input {
+    flex: 1;
+    min-width: 120px;
+    color: #222;
+    background: #f9f9f9;
+    border: 1px solid #bbb;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .loan-request-button {
+    min-width: 100px;
+    padding: 8px 16px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+  }
+
+  .loan-request-button:hover {
+    background: #0056b3;
+  }
+
+  .loan-request-button:active {
+    transform: translateY(1px);
+  }
+
+  .loan-error-message {
+    color: #dc3545;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .loan-success-message {
+    color: #28a745;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  /* Responsive adjustments for loan request forms */
+  @media (max-width: 768px) {
+    .loan-request-form {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .loan-amount-input {
+      min-width: 100%;
+      width: 100%;
+    }
+
+    .loan-request-button {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .loan-request-form {
+      margin-bottom: 12px;
+    }
+
+    .loan-amount-input {
+      font-size: 16px; /* Prevents zoom on iOS */
+      padding: 12px;
+    }
+
+    .loan-request-button {
+      padding: 12px;
+      font-size: 16px;
+    }
+  }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import API_BASE from './api';
 import ResponsiveTable from './components/ResponsiveTable';
+import { useAuth } from './context/AuthContext';
 import './LoanManagement.css';
 
 function LoanManagement() {
+  const { user } = useAuth();
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -12,6 +14,11 @@ function LoanManagement() {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [repaymentAmount, setRepaymentAmount] = useState('');
   const [repaymentLoading, setRepaymentLoading] = useState(false);
+  
+  // Loan request state
+  const [loanAmount, setLoanAmount] = useState('');
+  const [loanError, setLoanError] = useState('');
+  const [loanSuccess, setLoanSuccess] = useState('');
 
   const fetchLoans = async () => {
     setLoading(true);
@@ -27,6 +34,37 @@ function LoanManagement() {
   };
 
   useEffect(() => { fetchLoans(); }, []);
+
+  // Handle loan request
+  const handleLoanRequest = async (e) => {
+    e.preventDefault();
+    setLoanError('');
+    setLoanSuccess('');
+    
+    if (!loanAmount || Number(loanAmount) <= 0) {
+      setLoanError('Please enter a valid loan amount');
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${API_BASE}/loans`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ member: user.id || user._id, amount: loanAmount })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to request loan');
+      }
+      
+      setLoanSuccess('Loan request submitted successfully!');
+      setLoanAmount('');
+      fetchLoans(); // Refresh the loans list
+    } catch (err) {
+      setLoanError(err.message);
+    }
+  };
 
   const handleApprove = async (loanId) => {
     setError('');
@@ -239,12 +277,41 @@ function LoanManagement() {
         <p className="page-description">View and manage loan applications and approvals</p>
       </div>
 
-      {(error || success) && (
+      {(error || success || loanError || loanSuccess) && (
         <div className="alerts-container">
           {error && <div className="alert alert-error">{error}</div>}
           {success && <div className="alert alert-success">{success}</div>}
+          {loanError && <div className="alert alert-error">{loanError}</div>}
+          {loanSuccess && <div className="alert alert-success">{loanSuccess}</div>}
         </div>
       )}
+
+      {/* Loan Request Section */}
+      <div className="card">
+        <div className="card-header">
+          <h2>Request New Loan</h2>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleLoanRequest} className="loan-request-form">
+            <div className="form-group">
+              <label htmlFor="loanAmount">Loan Amount (RWF)</label>
+              <input 
+                id="loanAmount"
+                type="number" 
+                value={loanAmount} 
+                onChange={(e) => setLoanAmount(e.target.value)} 
+                placeholder="Enter loan amount" 
+                required 
+                min="1" 
+                className="loan-amount-input"
+              />
+            </div>
+            <button type="submit" className="loan-request-button">
+              Submit Loan Request
+            </button>
+          </form>
+        </div>
+      </div>
 
       <div className="card">
         <div className="card-header">

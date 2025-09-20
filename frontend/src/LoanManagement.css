@@ -49,6 +49,117 @@
 /* Table container */
 .table-container {
   padding: 1.5rem;
+}
+
+/* Loan Request Form Styles */
+.loan-request-form {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.loan-request-form .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+
+.loan-request-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.loan-request-form .loan-amount-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #111827;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.loan-request-form .loan-amount-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.loan-request-form .loan-amount-input::placeholder {
+  color: #9ca3af;
+}
+
+.loan-request-button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+.loan-request-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.loan-request-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.loan-request-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive adjustments for loan request form */
+@media (max-width: 768px) {
+  .loan-request-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .loan-request-form .form-group {
+    min-width: 100%;
+  }
+  
+  .loan-request-button {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .loan-request-form {
+    gap: 0.75rem;
+  }
+  
+  .loan-request-form .loan-amount-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 1rem;
+  }
+  
+  .loan-request-button {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+.table-container {
+  padding: 1.5rem;
   overflow-x: auto;
 }
 

@@ -13,6 +13,7 @@ import MyContributionsPage from './MyContributionsPage';
 import MyLoansPage from './MyLoansPage';
 import MyLotteryPage from './MyLotteryPage';
 import MyPenaltiesPage from './MyPenaltiesPage';
+import LotteryParticipationPage from './LotteryParticipationPage';
 import ProfileWrapper from './components/ProfileWrapper';
 import FinancialReports from './FinancialReports';
 import AuditTrail from './AuditTrail';
@@ -88,6 +89,7 @@ function App() {
           <Route path="/penalties" element={<PenaltiesPage />} />
           <Route path="/my-contributions" element={<RequireAuth><MyContributionsPage /></RequireAuth>} />
           <Route path="/my-loans" element={<RequireAuth><MyLoansPage /></RequireAuth>} />
+          <Route path="/lottery-participation" element={<RequireAuth><LotteryParticipationPage /></RequireAuth>} />
           <Route path="/lottery-status" element={<RequireAuth><MyLotteryPage /></RequireAuth>} />
           <Route path="/my-penalties" element={<RequireAuth><MyPenaltiesPage /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><ProfileWrapper /></RequireAuth>} />

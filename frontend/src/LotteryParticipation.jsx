@@ -34,21 +34,19 @@ function LotteryParticipation() {
     console.log('User ID from auth context:', userId);
   }, [user, userId]);
 
-  // Generate available months (current month + next 11 months)
+  // Generate available months (only next month)
   useEffect(() => {
     const months = [];
-    let month = currentMonth;
+    let month = currentMonth + 1; // Next month
     let year = currentYear;
     
-    for (let i = 0; i < 12; i++) {
-      months.push({ month, year });
-      month++;
-      if (month > 12) {
-        month = 1;
-        year++;
-      }
+    // Handle year rollover
+    if (month > 12) {
+      month = 1;
+      year++;
     }
     
+    months.push({ month, year });
     setAvailableMonths(months);
     fetchLotteryHistory();
   }, []);
@@ -68,14 +66,8 @@ function LotteryParticipation() {
   };
 
   const toggleMonth = (month, year) => {
-    setSelectedMonths(prev => {
-      const exists = prev.some(m => m.month === month && m.year === year);
-      if (exists) {
-        return prev.filter(m => !(m.month === month && m.year === year));
-      } else {
-        return [...prev, { month, year }];
-      }
-    });
+    // Only allow one month to be selected at a time
+    setSelectedMonths([{ month, year }]);
   };
 
   const handleBuyLottery = async () => {
@@ -89,13 +81,12 @@ function LotteryParticipation() {
       return;
     }
 
-    const totalCost = selectedMonths.length * LOTTERY_PRICE;
-    const monthsList = selectedMonths
-      .map(({ month, year }) => `${getMonthName(month)} ${year}`)
-      .join('\n- ');
+    const totalCost = LOTTERY_PRICE;
+    const monthName = getMonthName(selectedMonths[0].month);
+    const year = selectedMonths[0].year;
     
     if (!window.confirm(
-      `You are about to purchase lottery for the following months:\n\n- ${monthsList}\n\n` +
+      `You are about to purchase lottery for: ${monthName} ${year}\n\n` +
       `Total Amount: ${totalCost.toLocaleString()} RWF\n\nDo you want to proceed?`
     )) {
       return;
@@ -193,7 +184,7 @@ function LotteryParticipation() {
     );
   };
 
-  const totalAmount = selectedMonths.length * LOTTERY_PRICE;
+  const totalAmount = selectedMonths.length > 0 ? LOTTERY_PRICE : 0;
 
   if (loading) return <div>Loading lottery information...</div>;
 
@@ -265,6 +256,65 @@ function LotteryParticipation() {
           grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
           gap: 1rem;
           margin-top: 1rem;
+        }
+        
+        /* Responsive adjustments for month grid */
+        @media (max-width: 768px) {
+          .month-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.8rem;
+          }
+          
+          .month-button {
+            padding: 0.8rem;
+          }
+          
+          .month-name {
+            font-size: 1em;
+          }
+          
+          .year {
+            font-size: 0.8em;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .month-grid {
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.6rem;
+          }
+          
+          .month-button {
+            padding: 0.6rem;
+            min-height: 80px;
+          }
+          
+          .month-name {
+            font-size: 0.9em;
+            font-weight: 600;
+          }
+          
+          .year {
+            font-size: 0.75em;
+          }
+          
+          .status-badge {
+            font-size: 0.6em;
+            padding: 1px 4px;
+          }
+          
+          .lottery-participation {
+            padding: 0.8rem;
+          }
+          
+          .selection-summary {
+            padding: 0.8rem;
+          }
+          
+          .buy-button {
+            padding: 1rem;
+            font-size: 1em;
+          }
         }
         .month-button {
           position: relative;

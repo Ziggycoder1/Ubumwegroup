@@ -129,6 +129,7 @@ const DashboardLayout = ({ role, children }) => {
           { to: "/memberdashboard", icon: "📊", label: "Dashboard" },
           ...baseLinks,
           { to: "/my-contributions", icon: "💰", label: "My Contributions" },
+          { to: "/lottery-participation", icon: "🎟️", label: "Buy Lottery" },
           { to: "/reports", icon: "📈", label: "Financial Reports" },
           { to: "/my-loans", icon: "🏦", label: "My Loans" },
           { to: "/lottery-status", icon: "🎟️", label: "Lottery Status" },

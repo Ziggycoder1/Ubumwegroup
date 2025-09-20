@@ -1,16 +1,19 @@
 import DashboardLayout from './DashboardLayout';
 import StatCard from './StatCard';
 import MemberManagement from './MemberManagement';
+import { useAuth } from './context/AuthContext';
 
 import { useState, useEffect } from 'react';
 import API_BASE from './api';
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const [members, setMembers] = useState([]);
   const [loans, setLoans] = useState([]);
   const [contributions, setContributions] = useState([]);
   const [penalties, setPenalties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [lotteryData, setLotteryData] = useState({
     currentMonth: 'August 2023',
     status: 'Active',
